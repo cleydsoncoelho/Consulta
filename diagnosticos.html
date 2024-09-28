@@ -1,0 +1,492 @@
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Insira seus dados JSON aqui
+        const dados = [
+
+            {
+                id: 1,
+                diagnostico: "Aceitação da Condição de Saúde",
+                metas: "Aceitação da Condição de Saúde, melhorada",
+                intervencoes: [
+                    "Auxiliar no Autocuidado",
+                    "Avaliar Adesão ao Regime Terapêutico",
+                    "Avaliar Resposta ao Tratamento",
+                    "Avaliar Satisfação com Atenção à Saúde",
+                    "Colaborar com a Família"
+                ]
+            },
+            {
+                id: 2,
+                diagnostico: "Adesão ao Regime Dietético",
+                metas: "Adesão ao Regime Dietético, eficaz",
+                intervencoes: [
+                    "Fornecer orientação nutricional personalizada",
+                    "Envolver um nutricionista para acompanhamento",
+                    "Monitorar a adesão às recomendações dietéticas"
+                ]
+            },
+            {
+                id: 3,
+                diagnostico: "Adesão ao Regime Medicamentoso",
+                metas: "Adesão ao Regime Medicamentoso, eficaz",
+                intervencoes: [
+                    "Estabelecer lembretes para medicação",
+                    "Educar o paciente sobre efeitos colaterais",
+                    "Revisar a medicação em cada consulta"
+                ]
+            },
+            {
+                id: 4,
+                diagnostico: "Adesão ao Regime Terapêutico",
+                metas: "Adesão ao Regime Terapêutico, eficaz",
+                intervencoes: [
+                    "Envolver o paciente na criação do plano terapêutico",
+                    "Oferecer suporte psicológico para barreiras",
+                    "Monitorar resultados da terapia e ajustá-los"
+                ]
+            },
+            {
+                id: 5,
+                diagnostico: "Adesão ao Regime de Reabilitação",
+                metas: "Adesão ao Regime de Reabilitação, eficaz",
+                intervencoes: [
+                    "Educar sobre a importância da reabilitação",
+                    "Monitorar progresso e ajustar o plano",
+                    "Envolver a família e equipe multidisciplinar"
+                ]
+            },
+            {
+                id: 6,
+                diagnostico: "Afasia, Expressiva",
+                metas: "Capacidade de Comunicação Verbal, melhorada",
+                intervencoes: [
+                    "Implementar terapia da fala",
+                    "Usar dispositivos de comunicação alternativos",
+                    "Envolver familiares no processo"
+                ]
+            },
+            {
+                id: 7,
+                diagnostico: "Agitação",
+                metas: "Agitação controlada",
+                intervencoes: [
+                    "Avaliar causas subjacentes da agitação",
+                    "Proporcionar um ambiente calmo e seguro",
+                ]
+            },
+            {
+                id: 8,
+                diagnostico: "Alergia presente",
+                metas: "Alergia, ausente",
+                intervencoes: [
+                    "Identificar alérgenos específicos",
+                    "Evitar exposição aos alérgenos identificados"
+                ]
+            },
+            {
+                id: 9,
+                diagnostico: "Alergia a Látex",
+                metas: "Alergia a Látex, ausente",
+                intervencoes: [
+                    "Utilizar materiais alternativos ao látex"
+                ]
+            },
+            {
+                id: 10,
+                diagnostico: "Ansiedade, presente",
+                metas: "Ansiedade diminuída",
+                intervencoes: [
+                    "Avaliar fatores causadores",
+                    "Encorajar verbalização de sentimentos",
+                    "Identificar mudanças no nível de ansiedade",
+                    "Tranquilizar o paciente e/ou familiar",
+                    "Solicitar permanência de familiar ou acompanhante"
+                ]
+            },
+            {
+                id: 11,
+                diagnostico: "Atitude em Relação ao Manejo (Controle) da Medicação, Conflituosa",
+                metas: "Atitude em Relação ao Manejo (Controle) da Medicação, eficaz",
+                intervencoes: [
+                    "Orientar quanto ao manejo correto da medicação",
+                    "Orientar sobre a importância da refrigeração",
+                    "Orientar sobre o transporte adequado da medicação"
+                ]
+            },
+            {
+                id: 12,
+                diagnostico: "Conhecimento, inadequado sobre a Medicação",
+                metas: "Conhecimento, adequado, sobre medicação",
+                intervencoes: [
+                    "Orientar sobre o uso da medicação",
+                    "Orientar automonitoramento do regime terapêutico",
+                    "Orientar horário e dosagem de medicamentos",
+                    "Orientar sobre o regime terapêutico"
+                ]
+            },
+            {
+                id: 13,
+                diagnostico: "Deambulação alterada",
+                metas: "Deambulação melhorada",
+                intervencoes: [
+                    "Acompanhar e ajudar durante deambulação",
+                    "Monitorar marcha, equilíbrio e fadiga",
+                    "Manter vigilância contínua",
+                    "Encaminhar à poltrona ou cadeira de rodas"
+                ]
+            },
+            {
+                id: 14,
+                diagnostico: "Efeito secundário da medicação, presente",
+                metas: "Efeito secundário da medicação, ausente",
+                intervencoes: [
+                    "Interromper medicação endovenosa",
+                    "Inserir dispositivo de acesso vascular, se necessário",
+                    "Verificar permeabilidade de acesso venoso",
+                    "Comunicar ao enfermeiro e à equipe médica",
+                    "Monitorar sinais de reação alérgica",
+                    "Administrar medicação endovenosa"
+                ]
+            },
+            {
+                id: 15,
+                diagnostico: "Risco de Alergia",
+                metas: "Risco de Alergia, ausente",
+                intervencoes: [
+                    "Verificar alergênicos do paciente",
+                    "Certificar-se de que não há uso de alergênicos"
+                ]
+            },
+            {
+                id: 16,
+                diagnostico: "Risco de Efeito Colateral da Medicação",
+                metas: "Risco de efeito colateral da medicação, diminuído / Efeito colateral da medicação, ausente",
+                intervencoes: [
+                    "Administrar tratamento profilático",
+                    "Observar reações de hipersensibilidade",
+                    "Escutar queixas do paciente"
+                ]
+            },
+            {
+                id: 17,
+                diagnostico: "Risco de extravasamento de medicação",
+                metas: "Risco de extravasamento de medicação, diminuído",
+                intervencoes: [
+                    "Acompanhar paciente em deslocamentos",
+                    "Manter vigilância contínua"
+                ]
+            },
+            {
+                id: 18,
+                diagnostico: "Alergia, Alimentar",
+                metas: "Alergia Alimentar, ausente",
+                intervencoes: [
+                    "Monitorar dieta e identificar alimentos causadores de alergia",
+                ]
+            },
+            {
+                id: 19,
+                diagnostico: "Alergia, Ausente",
+                metas: "Manutenção de estado sem alergia",
+                intervencoes: [
+                    "Confirmar ausência de alérgenos no ambiente",
+                    "Manter vigilância para novas alergias"
+                ]
+            },
+            {
+                id: 20,
+                diagnostico: "Alerta (Acordado, Atento, Vigilante)",
+                metas: "Manutenção do estado de alerta",
+                intervencoes: [
+                    "Monitorar regularmente os sinais vitais",
+                    "Avaliar nível de consciência frequentemente"
+                ]
+            },
+            {
+                id: 22,
+                diagnostico: "Alodinia",
+                metas: "Redução da sensibilidade à dor",
+                intervencoes: [
+                    "Administrar medicação para dor conforme prescrito",
+                    "Educar o paciente sobre manejo da dor"
+                ]
+            },
+            {
+                id: 23,
+                diagnostico: "Alucinação",
+                metas: "Alucinação, diminuida / Alucinações ausentes",
+                intervencoes: [
+                    "Monitorar e documentar episódios de alucinações",
+                    "Proporcionar ambiente seguro e orientação realidade"
+                ]
+            },
+            {
+                id: 25,
+                diagnostico: "Amplitude de Movimento Ativa, Prejudicada",
+                metas: "Melhoria da amplitude de movimento",
+                intervencoes: [
+                    "Realizar exercícios de alongamento e fortalecimento",
+                ]
+            },
+            {
+                id: 28,
+                diagnostico: "Ansiedade",
+                metas: "Redução da ansiedade a níveis gerenciáveis",
+                intervencoes: [
+                    "Tranquilizar paciente",
+                    "Manter um ambiente de interação social saudável",
+                    "Monitorar sinais de ansiedade e intervir conforme necessário"
+                ]
+            },
+            {
+                id: 30,
+                diagnostico: "Apoio Familiar, Ausente",
+                metas: "Apoio fmailiar, melhorado",
+                intervencoes: [
+                    "Identificar barreiras para envolvimento familiar",
+                    "Encorajar a família a participar nos cuidados"
+                ]
+            },
+            {
+                id: 31,
+                diagnostico: "Atenção, Prejudicada",
+                metas: "Atenção, Melhorada",
+                intervencoes: [
+                    "Implementar estratégias para reduzir distrações",
+                    "Fornecer atividades focadas e estruturadas",
+                    "Avaliar periodicamente a capacidade de atenção"
+                ]
+            },
+            {
+                id: 32,
+                diagnostico: "Atitude do Cuidador, Conflituosa",
+                metas: "Atitude do Cuidador, harmonizada",
+                intervencoes: [
+                    "Mediar discussões entre cuidadores e pacientes",
+                    "Oferecer treinamento e suporte para cuidadores",
+                    "Avaliar regularmente a interação entre cuidador e paciente"
+                ]
+            },
+            {
+                id: 33,
+                diagnostico: "Atitude do Cuidador, Positiva",
+                metas: "Atitude do Cuidador, positiva",
+                intervencoes: [
+                    "Reconhecer e reforçar as práticas positivas do cuidador",
+                    "Promover o bem-estar do cuidador através de suporte contínuo",
+                    "Monitorar o impacto do suporte sobre o cuidador"
+                ]
+            },
+            {
+                id: 34,
+                diagnostico: "Atitude em Relação à Condição Nutricional, Prejudicada",
+                metas: "Atitude em Relação à Condição Nutricional, Melhorada",
+                intervencoes: [
+                    "Educar sobre a importância da nutrição adequada",
+                    "Avaliar crenças e atitudes nutricionais e fornecer feedback",
+                    "Implementar planos nutricionais personalizados"
+                ]
+            },
+            {
+                id: 35,
+                diagnostico: "Atitude em Relação ao Cuidado, Conflituosa",
+                metas: "Atitude em Relação ao Cuidado, Harmonizada",
+                intervencoes: [
+                    "Facilitar a comunicação efetiva entre equipe de cuidados e paciente",
+                    "Identificar e abordar preocupações específicas do paciente e da equipe",
+                    "Promover sessões de mediação e resolução de conflitos"
+                ]
+            },
+            {
+                id: 36,
+                diagnostico: "Atitude em Relação ao Cuidado, Positiva",
+                metas: "Atitude em Relação ao Cuidado, Continuadamente Positiva",
+                intervencoes: [
+                    "Encorajar feedback positivo sobre os cuidados recebidos",
+                    "Celebrar as melhorias e sucessos no tratamento",
+                    "Monitorar e sustentar o engajamento positivo com o cuidado"
+                ]
+            },
+            {
+                id: 37,
+                diagnostico: "Atitude em Relação ao Exercício Físico, Conflituosa",
+                metas: "Atitude em Relação ao Exercício Físico, Harmonizada",
+                intervencoes: [
+                    "Discutir os benefícios do exercício físico regular",
+                    "Ajudar a estabelecer metas de exercício realistas e alcançáveis",
+                    "Proporcionar suporte contínuo e motivação para o exercício"
+                ]
+            },
+            {
+                id: 38,
+                diagnostico: "Atitude em Relação ao Manejo (Controle) da Medicação, Conflituosa",
+                metas: "Atitude em Relação ao Manejo da Medicação, Harmonizada",
+                intervencoes: [
+                    "Avaliar e discutir preocupações com a medicação",
+                    "Fornecer educação detalhada sobre o regime de medicação",
+                    "Promover o entendimento e a adesão ao plano medicamentoso"
+                ]
+            },
+            {
+                id: 39,
+                diagnostico: "Atitude em Relação ao Regime Dietético, Conflituosa",
+                metas: "Atitude em Relação ao Regime Dietético, Harmonizada",
+                intervencoes: [
+                    "Explorar as crenças sobre dietas e corrigir informações equivocadas",
+                    "Incentivar o planejamento de refeições saudáveis",
+                    "Monitorar a adesão ao regime dietético e ajustar conforme necessário"
+                ]
+            },
+            {
+                id: 40,
+                diagnostico: "Atitude em Relação ao Tratamento, Conflituosa",
+                metas: "Atitude em Relação ao Tratamento, Harmonizada",
+                intervencoes: [
+                    "Facilitar a compreensão dos objetivos do tratamento",
+                    "Discutir abertamente expectativas e preocupações do paciente",
+                    "Ajustar o plano de tratamento para melhor atender às necessidades do paciente"
+                ]
+            },
+            {
+                id: 41,
+                diagnostico: "Atitude Familiar, Conflituosa",
+                metas: "Atitude Familiar, Harmonizada",
+                intervencoes: [
+                    "Promover diálogos construtivos entre membros da família",
+                    "Oferecer sessões de terapia familiar quando necessário",
+                    "Identificar e tratar as causas subjacentes dos conflitos familiares"
+                ]
+            },
+            {
+                id: 55,
+                diagnostico: 'Audição, Prejudicada',
+                metas: 'Audição, Recuperada ou Melhorada',
+                intervencoes: [
+                    'Realizar avaliação audiológica completa',
+                    'Oferecer dispositivos de apoio auditivo',
+                    'Educar o paciente sobre maneiras de melhorar a audição',
+                ],
+            },
+            {
+                id: 56,
+                diagnostico: 'Autoconsciência (ou Autocognição)',
+                metas: 'Autoconsciência Aumentada',
+                intervencoes: [
+                    'Proporcionar feedback regular sobre comportamento e reações',
+                    'Ajudar o paciente a refletir sobre experiências pessoais',
+                ],
+            },
+            {
+                id: 59,
+                diagnostico: 'Autoestima, Positiva',
+                metas: 'Autoestima Mantida e Fortalecida',
+                intervencoes: [
+                    'Proporcionar feedback positivo e encorajamento',
+                    'Envolver o paciente em atividades que promovam autoconfiança',
+                    'Monitorar sinais de baixa autoestima e oferecer suporte',
+                ],
+            },
+            {
+                id: 60,
+                diagnostico: 'Autoimagem, Negativa',
+                metas: 'Autoimagem Melhorada',
+                intervencoes: [
+                    'Encorajar o paciente a expressar sentimentos sobre sua autoimagem',
+                    'Proporcionar suporte emocional e psicológico',
+                    'Fomentar atividades que promovam uma autoimagem positiva',
+                ],
+            },
+            {
+                id: 62,
+                diagnostico: 'Automutilação',
+                metas: 'Redução e Prevenção de Comportamentos de Automutilação',
+                intervencoes: [
+                    'Monitorar sinais de automutilação e comportamento de risco',
+                    'Oferecer suporte psicológico e intervenção imediata',
+                    'Estabelecer um plano de segurança e prevenção',
+                ],
+            },
+                {
+                id: 63,
+                diagnostico: 'Baixa Autoeficácia',
+                metas: 'Autoeficácia Melhorada',
+                intervencoes: [
+                    'Incentivar a realização de pequenas tarefas para aumentar a confiança',
+                    'Oferecer feedback positivo em relação às realizações',
+                    'Estabelecer metas alcançáveis com o paciente',
+                ],
+            },
+            {
+                id: 64,
+                diagnostico: 'Baixa Autoestima',
+                metas: 'Autoestima Melhorada',
+                intervencoes: [
+                    'Fomentar atividades que promovam confiança e valorização pessoal',
+                    'Oferecer suporte emocional e psicológico',
+                    'Encorajar o paciente a expressar sentimentos sobre sua autoestima',
+                ],
+            },
+            {
+                id: 65,
+                diagnostico: 'Baixa Autoestima, Crônica',
+                metas: 'Autoestima Crônica Melhorada',
+                intervencoes: [
+                    'Oferecer suporte psicológico contínuo',
+                    'Desenvolver um plano de tratamento a longo prazo para melhorar a autoestima',
+                    'Ajudar o paciente a identificar e desafiar pensamentos negativos persistentes',
+                ],
+            },
+            {
+                id: 66,
+                diagnostico: 'Baixa Autoestima, Situacional',
+                metas: 'Autoestima Situacional Melhorada',
+                intervencoes: [
+                    'Proporcionar suporte emocional em situações específicas',
+                    'Ajudar o paciente a desenvolver estratégias para lidar com situações de baixa autoestima',
+                    'Incentivar a reflexão sobre eventos positivos e realizações recentes',
+                ],
+            },
+            {
+                id: 67,
+                diagnostico: 'Baixa Iniciativa',
+                metas: 'Iniciativa Aumentada',
+                intervencoes: [
+                    'Incentivar o paciente a tomar pequenas decisões e iniciativas',
+                    'Fornecer suporte motivacional contínuo',
+                    'Criar um plano de metas gradativas para o paciente',
+                ],
+            },
+            {
+                id: 68,
+                diagnostico: 'Baixo Peso',
+                metas: 'Peso Corporal Adequado Alcançado',
+                intervencoes: [
+                    'Desenvolver um plano nutricional personalizado',
+                    'Monitorar regularmente o peso e o estado nutricional do paciente',
+                    'Fornecer suplementos alimentares conforme necessário',
+                ],
+            },
+            {
+                id: 69,
+                diagnostico: 'Bom Humor',
+                metas: 'Manutenção de Bom Humor',
+                intervencoes: [
+                    'Incentivar a participação em atividades prazerosas',
+                    'Oferecer reforço positivo para comportamentos e atitudes positivas',
+                    'Monitorar o humor e intervir em casos de declínio',
+                ],
+            },
+            {
+                id: 70,
+                diagnostico: 'Barreira na Comunicação',
+                metas: 'Comunicação Eficaz Alcançada',
+                intervencoes: [
+                    'Identificar e abordar as barreiras de comunicação',
+                    'Utilizar ferramentas de comunicação alternativas, se necessário',
+                    'Oferecer suporte contínuo para melhorar a comunicação',
+                ],
+            },
+
+        ];
+    })
+</scripts>

@@ -1,0 +1,1945 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="initial-scale=0.8, maximum-scale=0.8, user-scalable=no" />
+    <title>Consulta de Enfermagem</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <style>
+        .nav-tabs .nav-item.show .nav-link,
+        .nav-tabs .nav-link.active {
+            color: #ffffff;
+            background-color: #198754;
+            border-color: #dee2e6 #dee2e6 #fff;
+            border-bottom: 2px solid #fdfffc;
+            /* Cor da borda ativa */
+        }
+
+        .nav-tabs .nav-link {
+            border: 1px solid transparent;
+            border-top-left-radius: 0.25rem;
+            border-top-right-radius: 0.25rem;
+            color: #094204;
+            /* Cor do texto inativo */
+            background-color: #f8f9fa;
+            /* Cor de fundo inativo */
+        }
+
+        .nav-tabs .nav-link:hover {
+            border-color: #e9ecef #e9ecef #dee2e6;
+        }
+
+        .tab-content>.tab-pane {
+            padding: 1rem;
+            border: 1px solid #dee2e6;
+            border-top: none;
+            /* Remover a borda superior para se alinhar com a tab */
+            background-color: #fff;
+            /* Cor de fundo do conteúdo da tab */
+        }
+
+        /* Estilizar o botão do acordeão quando recolhido */
+        .custom-accordion .accordion-button.collapsed {
+            background-color: #ffffff;
+            /* Cor de fundo quando recolhido */
+            color: #198754;
+            /* Cor do texto quando recolhido */
+        }
+
+        /* Estilizar o botão do acordeão quando expandido */
+        .custom-accordion .accordion-button:not(.collapsed) {
+            background-color: #198754;
+            /* Cor de fundo quando expandido */
+            color: #ffffff;
+            /* Cor do texto quando expandido */
+        }
+
+        /* Estilizar o corpo do acordeão */
+        .custom-accordion .accordion-body {
+            padding: 10px;
+            /* Espaçamento interno do corpo */
+            border: 1px solid #ccc;
+            /* Borda do corpo */
+            border-radius: 4px;
+            /* Cantos arredondados do corpo */
+        }
+    </style>
+    <script>
+        // Adicione um ouvinte de evento ao documento para capturar a tecla "Enter"
+        document.addEventListener('keydown', function (e) {
+            // Verifique se a tecla pressionada é a tecla "Enter" (código 13)
+            if (e.keyCode === 13) {
+                // Encontre o elemento ativo
+                var focusedElement = document.activeElement;
+                // Verifique se o elemento ativo é um campo de entrada, seleção ou área de texto
+                if (
+                    focusedElement &&
+                    (focusedElement.tagName === 'INPUT' ||
+                        focusedElement.tagName === 'SELECT' ||
+                        focusedElement.tagName === 'TEXTAREA')
+                ) {
+                    // Encontre todos os campos de entrada, seleções e áreas de texto no formulário
+                    var formElements = document.querySelectorAll('input, select, textarea');
+                    // Encontre o índice do elemento ativo
+                    var currentIndex = Array.from(formElements).indexOf(focusedElement);
+                    // Verifique se o elemento ativo não é o último elemento
+                    if (currentIndex < formElements.length - 1) {
+                        // Mude o foco para o próximo elemento
+                        formElements[currentIndex + 1].focus();
+                    }
+                    // Impedir o comportamento padrão da tecla "Enter" (enviar o formulário)
+                    e.preventDefault();
+                }
+            }
+        });
+    </script>
+</head>
+<!-- Cabeçalho -->
+<header class="bg-success">
+    <nav class="navbar navbar-expand-sm navbar-light bg-success">
+        <div class="container">
+            <a href="#" class="navbar-brand">
+                <img src="img/logo.png" alt="Logo" style="width: 300px" />
+                <!-- Certifique-se de que o caminho para a imagem está correto -->
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav-principal"
+                aria-controls="nav-principal" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="nav-principal">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a href="admConsulta.html" class="btn btn-success ms-2">Consulta de Admissão</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="preConsulta.html" class="btn btn-success ms-2">Consulta Pré Infusional</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="posConsulta.html" class="btn btn-success ms-2">Consulta Pós Infusional</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<body>
+
+    <!-- Botões COPIAR PDF e LIMPAR-->
+    <section>
+        <div class="container mt-5">
+            <button id="btnAssinar" class="btn btn-success mt-3">Assinar</button>
+            <button id="btnRecarregar" class="btn btn-danger mt-3" onclick="recarregarPagina()">Limpar
+                Formulário</button>
+        </div>
+    </section>
+
+    <!-- MODAL DAS ASSINATURAS -->
+    <section>
+        <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog"
+            aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLongTitle">Confirmação</h5>
+                    </div>
+                    <div class="modal-body">
+                        <p>Selecione a assinatura do enfermeiro:</p>
+                        <div class="d-flex flex-column">
+                            <button type="button" class="btn btn-outline-primary my-1 enfermeiro"
+                                data-nome="Alyne Corrêa de Freitas Reais" data-coren="159.010"
+                                data-matricula="37.459-5">
+                                <strong>Alyne Corrêa de Freitas Reais</strong><br /><small>COREN: 159.010 | Matrícula:
+                                    37.459-5</small>
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary my-1 enfermeiro"
+                                data-nome="Arianne Innecco Pereira de Carvalho" data-coren="332.683"
+                                data-matricula="38.179-8">
+                                <strong>Arianne Innecco Pereira de Carvalho</strong><br /><small>COREN: 332.683 |
+                                    Matrícula: 38.179-8</small>
+                            </button>
+                            <button type="button" class="btn btn-outline-success my-1 enfermeiro"
+                                data-nome="Cleydson Assis Coelho" data-coren="204542" data-matricula="40.080-4">
+                                <strong>Cleydson Assis Coelho</strong><br /><small>COREN: 204.542 | Matrícula:
+                                    40.080-4</small>
+                            </button>
+                            <button type="button" class="btn btn-outline-danger my-1 enfermeiro"
+                                data-nome="Rachael Miranda dos Santos" data-coren="318.216" data-matricula="36.509-8">
+                                <strong>Rachael Miranda dos Santos</strong><br /><small>COREN: 318.216 | Matrícula:
+                                    36.509-8</small>
+                            </button>
+                            <button type="button" class="btn btn-outline-warning my-1 enfermeiro"
+                                data-nome="Wendy Hellen Davies" data-coren="179.473" data-matricula="37.463-7">
+                                <strong>Wendy Hellen Davies</strong><br /><small>COREN: 179.473 | Matrícula:
+                                    37.463-7</small>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="confirmarCopiar" type="button" class="btn btn-success" data-dismiss="modal">
+                            <i class="fas fa-copy"></i> Copiar
+                        </button>
+                        <button id="confirmarPDF" type="button" class="btn btn-info" data-dismiss="modal">
+                            <i class="fas fa-file-pdf"></i> Salvar PDF
+                        </button>
+                        <button id="cancelar" type="button" class="btn btn-secondary" data-dismiss="modal"><i
+                                class="fas fa-times"></i> Fechar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Area TAB NAV (funcional) DA TEORIA DE CALISTA ROY-->
+    <section>
+        <!-- Conteúdo do TAB -->
+        <div class="container mt-5">
+            <ul class="nav nav-tabs nav-fill" id="myTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link show active" id="funcao-papel-tab" data-bs-toggle="tab"
+                        data-bs-target="#funcao-papel" type="button" role="tab" aria-controls="funcao-papel"
+                        aria-selected="true">
+                        MODO FUNÇÃO DO PAPEL
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="interdependencia-tab" data-bs-toggle="tab"
+                        data-bs-target="#interdependencia" type="button" role="tab" aria-controls="interdependencia"
+                        aria-selected="false">
+                        MODO INTERDEPENDÊNCIA
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="autoconceito-tab" data-bs-toggle="tab" data-bs-target="#autoconceito"
+                        type="button" role="tab" aria-controls="autoconceito" aria-selected="false">
+                        MODO AUTOCONCEITO
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="fisiologico-tab" data-bs-toggle="tab" data-bs-target="#fisiologico"
+                        type="button" role="tab" aria-controls="fisiologico" aria-selected="false">
+                        MODO FISIOLÓGICO
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="diagnosticos-tab" data-bs-toggle="tab" data-bs-target="#diagnosticos"
+                        type="button" role="tab" aria-controls="diagnosticos" aria-selected="false">
+                        DIAGNÓSTICOS/METAS/INTERVENÇÕES
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </section>
+
+    <section>
+        <div class="tab-content" id="myTabContent">
+            <!-- Aba "Função do Papel" -->
+            <div class="tab-pane fade show active" id="funcao-papel" role="tabpanel" aria-labelledby="funcao-papel-tab">
+                <div id="funcao-papel-form">
+                    <div class="container">
+                        <!-- Data da Consulta -->
+                        <div class="row mt-3">
+                            <div class="col-2">
+                                <label class="form-label" for="dataConsulta">Data da Consulta:</label>
+                                <input type="date" class="form-control form-control-sm" id="dataConsulta"
+                                    name="dataConsulta" />
+                            </div>
+                        </div>
+                        <!-- Script Data da Consulta -->
+                        <script>
+                            function obterComponentesDataAtual() {
+                                var hoje = new Date();
+                                var dia = String(hoje.getDate()).padStart(2, '0');
+                                var mes = String(hoje.getMonth() + 1).padStart(2, '0'); // Janeiro é 0!
+                                var ano = hoje.getFullYear();
+                                var dataFormatadaParaInput = ano + '-' + mes + '-' + dia; // Formato YYYY-MM-DD para input[type="date"]
+                                var dataFormatadaParaExibicao = dia + '/' + mes + '/' + ano; // Formato DD/MM/YYYY para exibição
+                                return { dataFormatadaParaInput, dataFormatadaParaExibicao };
+                            }
+
+                            document.addEventListener('DOMContentLoaded', function () {
+                                var { dataFormatadaParaInput } = obterComponentesDataAtual();
+                                document.getElementById('dataConsulta').value = dataFormatadaParaInput; // Usa formato YYYY-MM-DD para input[type="date"]
+                            });
+
+
+                        </script>
+                        <!-- Nome do Paciente e prontuário -->
+                        <div class="row mt-3">
+                            <!-- Linha para Nome e Prontuário do Paciente -->
+                            <div class="col-9">
+                                <!-- Grupo de Formulário para Nome -->
+                                <!-- Este campo é utilizado para inserir o nome completo do paciente. -->
+                                <div class="form-group">
+                                    <label class="form-label" for="nomePaciente">Nome do Paciente</label>
+                                    <input type="text" class="form-control form-control-sm" id="nomePaciente"
+                                        placeholder="Digite o nome do paciente" />
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <!-- Grupo de Formulário para Prontuário -->
+                                <!-- Este campo é utilizado para inserir o número de prontuário do paciente, que é um identificador único. -->
+                                <div class="form-group">
+                                    <label class="form-label" for="prontuarioPaciente">Prontuário</label>
+                                    <input type="text" class="form-control form-control-sm" id="prontuarioPaciente"
+                                        placeholder="Número do prontuário" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="data_nascimento">Data de Nascimento</label>
+                                    <input type="date" class="form-control form-control-sm" id="data_nascimento" />
+                                </div>
+                            </div>
+                            <!-- Quarta Linha: Celular, Telefone Fixo e CEP -->
+
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="celular">Celular</label>
+                                    <input type="tel" class="form-control form-control-sm" id="celular"
+                                        placeholder="Digite o número de celular" />
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="bairro">Bairro</label>
+                                    <input type="text" class="form-control form-control-sm" id="bairro"
+                                        placeholder="Bairro" />
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="cidade">Cidade</label>
+                                    <select class="form-control form-control-sm" id="cidade">
+                                        <option value="" disabled selected>Selecione a Cidade</option>
+                                        <option value="Angra dos Reis">Angra dos Reis</option>
+                                        <option value="Aperibé">Aperibé</option>
+                                        <option value="Araruama">Araruama</option>
+                                        <option value="Areal">Areal</option>
+                                        <option value="Armação dos Búzios">Armação dos Búzios</option>
+                                        <option value="Arraial do Cabo">Arraial do Cabo</option>
+                                        <option value="Barra do Piraí">Barra do Piraí</option>
+                                        <option value="Barra Mansa">Barra Mansa</option>
+                                        <option value="Belford Roxo">Belford Roxo</option>
+                                        <option value="Bom Jardim">Bom Jardim</option>
+                                        <option value="Bom Jesus do Itabapoana">Bom Jesus do Itabapoana</option>
+                                        <option value="Cabo Frio">Cabo Frio</option>
+                                        <option value="Cachoeiras de Macacu">Cachoeiras de Macacu</option>
+                                        <option value="Cambuci">Cambuci</option>
+                                        <option value="Campos dos Goytacazes">Campos dos Goytacazes</option>
+                                        <option value="Cantagalo">Cantagalo</option>
+                                        <option value="Carapebus">Carapebus</option>
+                                        <option value="Cardoso Moreira">Cardoso Moreira</option>
+                                        <option value="Carmo">Carmo</option>
+                                        <option value="Casimiro de Abreu">Casimiro de Abreu</option>
+                                        <option value="Comendador Levy Gasparian">Comendador Levy Gasparian</option>
+                                        <option value="Conceição de Macabu">Conceição de Macabu</option>
+                                        <option value="Cordeiro">Cordeiro</option>
+                                        <option value="Duas Barras">Duas Barras</option>
+                                        <option value="Duque de Caxias">Duque de Caxias</option>
+                                        <option value="Engenheiro Paulo de Frontin">Engenheiro Paulo de Frontin</option>
+                                        <option value="Guapimirim">Guapimirim</option>
+                                        <option value="Iguaba Grande">Iguaba Grande</option>
+                                        <option value="Itaboraí">Itaboraí</option>
+                                        <option value="Itaguaí">Itaguaí</option>
+                                        <option value="Italva">Italva</option>
+                                        <option value="Itaocara">Itaocara</option>
+                                        <option value="Itaperuna">Itaperuna</option>
+                                        <option value="Itatiaia">Itatiaia</option>
+                                        <option value="Japeri">Japeri</option>
+                                        <option value="Laje do Muriaé">Laje do Muriaé</option>
+                                        <option value="Macaé">Macaé</option>
+                                        <option value="Macuco">Macuco</option>
+                                        <option value="Magé">Magé</option>
+                                        <option value="Mangaratiba">Mangaratiba</option>
+                                        <option value="Maricá">Maricá</option>
+                                        <option value="Mendes">Mendes</option>
+                                        <option value="Mesquita">Mesquita</option>
+                                        <option value="Miguel Pereira">Miguel Pereira</option>
+                                        <option value="Miracema">Miracema</option>
+                                        <option value="Natividade">Natividade</option>
+                                        <option value="Nilópolis">Nilópolis</option>
+                                        <option value="Niterói">Niterói</option>
+                                        <option value="Nova Friburgo">Nova Friburgo</option>
+                                        <option value="Nova Iguaçu">Nova Iguaçu</option>
+                                        <option value="Paracambi">Paracambi</option>
+                                        <option value="Paraíba do Sul">Paraíba do Sul</option>
+                                        <option value="Paraty">Paraty</option>
+                                        <option value="Paty do Alferes">Paty do Alferes</option>
+                                        <option value="Petrópolis">Petrópolis</option>
+                                        <option value="Pinheiral">Pinheiral</option>
+                                        <option value="Piraí">Piraí</option>
+                                        <option value="Porciúncula">Porciúncula</option>
+                                        <option value="Porto Real">Porto Real</option>
+                                        <option value="Quatis">Quatis</option>
+                                        <option value="Queimados">Queimados</option>
+                                        <option value="Quissamã">Quissamã</option>
+                                        <option value="Resende">Resende</option>
+                                        <option value="Rio Bonito">Rio Bonito</option>
+                                        <option value="Rio Claro">Rio Claro</option>
+                                        <option value="Rio das Flores">Rio das Flores</option>
+                                        <option value="Rio das Ostras">Rio das Ostras</option>
+                                        <option value="Rio de Janeiro">Rio de Janeiro</option>
+                                        <option value="Santa Maria Madalena">Santa Maria Madalena</option>
+                                        <option value="Santo Antônio de Pádua">Santo Antônio de Pádua</option>
+                                        <option value="São Fidélis">São Fidélis</option>
+                                        <option value="São Francisco de Itabapoana">São Francisco de Itabapoana</option>
+                                        <option value="São Gonçalo">São Gonçalo</option>
+                                        <option value="São João da Barra">São João da Barra</option>
+                                        <option value="São João de Meriti">São João de Meriti</option>
+                                        <option value="São José de Ubá">São José de Ubá</option>
+                                        <option value="São José do Vale do Rio Preto">São José do Vale do Rio Preto
+                                        </option>
+                                        <option value="São Pedro da Aldeia">São Pedro da Aldeia</option>
+                                        <option value="São Sebastião do Alto">São Sebastião do Alto</option>
+                                        <option value="Sapucaia">Sapucaia</option>
+                                        <option value="Saquarema">Saquarema</option>
+                                        <option value="Seropédica">Seropédica</option>
+                                        <option value="Silva Jardim">Silva Jardim</option>
+                                        <option value="Sumidouro">Sumidouro</option>
+                                        <option value="Tanguá">Tanguá</option>
+                                        <option value="Teresópolis">Teresópolis</option>
+                                        <option value="Trajano de Moraes">Trajano de Moraes</option>
+                                        <option value="Três Rios">Três Rios</option>
+                                        <option value="Valença">Valença</option>
+                                        <option value="Varre-Sai">Varre-Sai</option>
+                                        <option value="Vassouras">Vassouras</option>
+                                        <option value="Volta Redonda">Volta Redonda</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aba "Interdependência" -->
+            <div class="tab-pane fade" id="interdependencia" role="tabpanel" aria-labelledby="interdependencia-tab">
+                <div id="interdependencia-form">
+                    <div class="container mt-2">
+                        <h6 class="h6">Medicação, Conservação e Transporte</h6>
+                        <div class="row mt-3">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <div>
+                                        <!-- Item medicacaoPaciente -->
+                                        <div class="form-check form-check-inline form-check-sm">
+                                            <input class="form-check-input" type="radio" id="medicacaoPaciente"
+                                                name="medicacaoStatus" value="Medicação com paciente" />
+                                            <label class="form-check-label" for="medicacaoPaciente">Medicação com
+                                                paciente</label>
+                                        </div>
+                                        <!-- Item medicacaoPPC -->
+                                        <div class="form-check form-check-inline form-check-sm">
+                                            <input class="form-check-input" type="radio" id="medicacaoPPC"
+                                                name="medicacaoStatus" value="Medicação na farmácia da PPC" />
+                                            <label class="form-check-label" for="medicacaoPPC">Medicação na farmácia da
+                                                PPC</label>
+                                        </div>
+                                        <!-- Item medicacaoEmprestimoCI -->
+                                        <div class="form-check form-check-inline form-check-sm">
+                                            <input class="form-check-input" type="radio" id="medicacaoEmprestimoCI"
+                                                name="medicacaoStatus" value="Medicação por empréstimo do CI" />
+                                            <label class="form-check-label" for="medicacaoEmprestimoCI">Medicação por
+                                                empréstimo do CI</label>
+                                        </div>
+                                        <div class="form-check form-check-inline form-check-sm">
+                                            <input class="form-check-input" type="radio" id="medicacaodevolucao"
+                                                name="medicacaoStatus" value="Devolução de Medicação de emprestimo" />
+                                            <label class="form-check-label" for="medicacaodevolucao">Registro de
+                                                devolução de medicação</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Medicação com Pciente  -->
+                        <section>
+                            <div class="row mt-4 med-com-paciente">
+                                <div class="col-sm-3 mt-3">
+                                    <div class="form-group">
+                                        <label class="form-label-sm">A condição de transporte foi adequada?</label>
+                                        <div>
+                                            <!-- Opção 'Adequada' para condição de transporte -->
+                                            <div class="form-check form-check-sm form-check-inline">
+                                                <input class="form-check-input" type="radio" id="transporteAdequado"
+                                                    name="condicaoTransporte" value="Adequada" />
+                                                <label class="form-check-label"
+                                                    for="transporteAdequado">Adequada</label>
+                                            </div>
+                                            <!-- Opção 'Inadequada' para condição de transporte -->
+                                            <div class="form-check form-check-sm form-check-inline">
+                                                <input class="form-check-input" type="radio" id="transporteInadequado"
+                                                    name="condicaoTransporte" value="Inadequada" />
+                                                <label class="form-check-label"
+                                                    for="transporteInadequado">Inadequada</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Grupo de perguntas sobre condição adequada de armazenamento -->
+                                <div class="col-sm-4 mt-3">
+                                    <div class="form-group">
+                                        <label class="form-label-sm">Armazenamento na residência adequado?</label>
+                                        <div>
+                                            <!-- Opção 'Adequada' para condição de armazenamento -->
+                                            <div class="form-check form-check-sm form-check-inline">
+                                                <input class="form-check-input" type="radio" id="armazenamentoAdequado"
+                                                    name="condicaoArmazenamento" value="Adequada" />
+                                                <label class="form-check-label"
+                                                    for="armazenamentoAdequado">Adequada</label>
+                                            </div>
+                                            <!-- Opção 'Inadequada' para condição de armazenamento -->
+                                            <div class="form-check form-check-sm form-check-inline">
+                                                <input class="form-check-input" type="radio"
+                                                    id="armazenamentoInadequado" name="condicaoArmazenamento"
+                                                    value="Inadequada" />
+                                                <label class="form-check-label"
+                                                    for="armazenamentoInadequado">Inadequada</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Pergunta sobre queda de luz -->
+                                <div class="col-sm-4 mt-3">
+                                    <div class="form-group">
+                                        <label class="form-label-sm">Houve queda de luz por longo período em sua
+                                            residência?</label>
+                                        <div>
+                                            <!-- Opção 'Sim' para queda de luz -->
+                                            <div class="form-check form-check-sm form-check-inline">
+                                                <input class="form-check-input" type="radio" id="quedaLuzSim"
+                                                    name="quedaLuz" value="Sim" />
+                                                <label class="form-check-label" for="quedaLuzSim">Sim</label>
+                                            </div>
+                                            <!-- Opção 'Não' para queda de luz -->
+                                            <div class="form-check form-check-sm form-check-inline">
+                                                <input class="form-check-input" type="radio" id="quedaLuzNao"
+                                                    name="quedaLuz" value="Não" />
+                                                <label class="form-check-label" for="quedaLuzNao">Não</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        <!-- Medicação emprestimo do CI  -->
+                        <section>
+                            <div class="row mt-3 med-emprestimo-ci">
+                                <!-- Coluna para a pergunta sobre o uso da medicação do Centro de Infusão -->
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label class="form-label-sm">Paciente irá usar a medicação do Centro de
+                                            Infusão?</label>
+                                        <div>
+                                            <!-- Opção 'Sim' para uso da medicação -->
+                                            <div class="form-check form-check-sm form-check-inline">
+                                                <input class="form-check-input" type="radio" id="usoMedicacaoSim"
+                                                    name="usoMedicacaoCentro" value="Sim" />
+                                                <label class="form-check-label" for="usoMedicacaoSim">Sim</label>
+                                            </div>
+                                            <!-- Opção 'Não' para uso da medicação -->
+                                            <div class="form-check form-check-sm form-check-inline">
+                                                <input class="form-check-input" type="radio" id="usoMedicacaoNao"
+                                                    name="usoMedicacaoCentro" value="Não" />
+                                                <label class="form-check-label" for="usoMedicacaoNao">Não</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Coluna para a pergunta sobre reposição de medicações -->
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label class="form-label">Se sim, quantos frascos?:</label>
+                                        <input type="text" class="form-control form-control-sm"
+                                            id="quantidadeFrascosemprestados" name="quantidadeFrascosemprestados"
+                                            placeholder="Digite o número de frascos" style="width: 100%" />
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        <!-- Este itens desta row estará disponivel quando Item medicacaoPaciente estiver ativado -->
+                        <!-- Medicação da Farmacia  -->
+                        <section>
+                            <div class="row mt-3 alerta-ppc" style="display: none">
+                                <div class="col-sm-12">
+                                    <div class="alert alert-warning" role="alert">
+                                        <strong>Alerta:</strong> Verifique se o paciente já assinou um documento de
+                                        liberação de medicamento
+                                        fornecido pela farmácia..
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        <!-- Medicação devolvida  -->
+                        <section>
+                            <div class="row mt-3 med-devolucao">
+                                <!-- Campos sempre visíveis -->
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Paciente irá repor medicações de empréstimo anterior:
+                                            <br />
+                                            Quantos frascos?</label>
+                                        <input type="text" class="form-control form-control-sm"
+                                            id="quantidadeFrascosdevolvidos" name="quantidadeFrascodesvolvidos"
+                                            placeholder="Digite o número de frascos" style="width: 25%" />
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        <!-- Medicação Comum a todos   -->
+                        <div class="col-sm-12 mt-3">
+                            <label class="form-label" for="comentarios">Comentários adicionais:</label>
+                            <textarea class="form-control" id="comentarios" name="comentarios" rows="3"
+                                placeholder="Inclua quaisquer observações ou detalhes adicionais aqui."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        // Seleção dos elementos de input e seções do formulário
+                        const medicacaoPacienteRadio = document.getElementById('medicacaoPaciente');
+                        const medicacaoPPCRadio = document.getElementById('medicacaoPPC');
+                        const medicacaoEmprestimoCIRadio = document.getElementById('medicacaoEmprestimoCI');
+                        const medicacaoDevolucaoRadio = document.getElementById('medicacaodevolucao');
+
+                        const medComPacienteFields = document.querySelectorAll('.med-com-paciente');
+                        const medEmprestimoCIFields = document.querySelectorAll('.med-emprestimo-ci');
+                        const medDevolucaoFields = document.querySelectorAll('.med-devolucao');
+                        const alertaPPC = document.querySelectorAll('.alerta-ppc');
+
+                        function toggleFields() {
+                            if (medicacaoPacienteRadio.checked) {
+                                medComPacienteFields.forEach((field) => (field.style.display = 'block'));
+                                medEmprestimoCIFields.forEach((field) => (field.style.display = 'none'));
+                                medDevolucaoFields.forEach((field) => (field.style.display = 'none'));
+                                alertaPPC.forEach((alert) => (alert.style.display = 'none'));
+                            } else if (medicacaoPPCRadio.checked) {
+                                medComPacienteFields.forEach((field) => (field.style.display = 'none'));
+                                medEmprestimoCIFields.forEach((field) => (field.style.display = 'none'));
+                                medDevolucaoFields.forEach((field) => (field.style.display = 'none'));
+                                alertaPPC.forEach((alert) => (alert.style.display = 'block'));
+                            } else if (medicacaoEmprestimoCIRadio.checked) {
+                                medComPacienteFields.forEach((field) => (field.style.display = 'none'));
+                                medEmprestimoCIFields.forEach((field) => (field.style.display = 'block'));
+                                medDevolucaoFields.forEach((field) => (field.style.display = 'none'));
+                                alertaPPC.forEach((alert) => (alert.style.display = 'none'));
+                            } else if (medicacaoDevolucaoRadio.checked) {
+                                medComPacienteFields.forEach((field) => (field.style.display = 'none'));
+                                medEmprestimoCIFields.forEach((field) => (field.style.display = 'none'));
+                                medDevolucaoFields.forEach((field) => (field.style.display = 'block'));
+                                alertaPPC.forEach((alert) => (alert.style.display = 'none'));
+                            } else {
+                                medComPacienteFields.forEach((field) => (field.style.display = 'none'));
+                                medEmprestimoCIFields.forEach((field) => (field.style.display = 'none'));
+                                medDevolucaoFields.forEach((field) => (field.style.display = 'none'));
+                                alertaPPC.forEach((alert) => (alert.style.display = 'none'));
+                            }
+                        }
+
+                        // Adiciona evento de mudança para cada botão de rádio
+                        document.querySelectorAll('input[name="medicacaoStatus"]').forEach((radio) => {
+                            radio.addEventListener('change', toggleFields);
+                        });
+
+                        // Chama a função de atualização para inicializar o estado correto ao carregar a página
+                        toggleFields();
+                    });
+
+                </script>
+            </div>
+            <!-- Aba "Autoconceito" -->
+            <div class="tab-pane fade" id="autoconceito" role="tabpanel" aria-labelledby="autoconceito-tab">
+                <div id="autoconceito-form">
+                    <div class="container mt-2">
+                        <!-- Primeira Linha -->
+                        <div class="row mt-3">
+                            <div class="col-md-9">
+                                <div class="form-group">
+                                    <label for="diagnostico">Diagnóstico</label>
+                                    <input type="text" class="form-control form-control-sm" id="diagnostico"
+                                        placeholder="Digite o diagnóstico" />
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="data_diagnostico">Data do Diagnóstico</label>
+                                    <input type="text" class="form-control form-control-sm" id="data_diagnostico"
+                                        placeholder="dd/mm/aaaa" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Oitava Linha: História Atual -->
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="historia_atual">História Atual</label>
+                                    <textarea class="form-control form-control-sm" id="historia_atual" rows="4"
+                                        placeholder="Digite a história atual do paciente"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Nona Linha: Sintomas Atuais -->
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="sintomas_atuais">Sintomas Atuais</label>
+                                    <textarea class="form-control form-control-sm" id="sintomas_atuais" rows="2"
+                                        placeholder="Digite os sintomas atuais do paciente"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Décima Linha: Comorbidades (inline) -->
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label>Comorbidades</label><br />
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="negacomorbidades"
+                                            value="Nega Comorbidades" />
+                                        <label class="form-check-label" for="negacomorbidades">Nega Comorbidades</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="hipertensao"
+                                            value="Hipertensão" />
+                                        <label class="form-check-label" for="hipertensao">Hipertensão</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="diabetes"
+                                            value="Diabetes" />
+                                        <label class="form-check-label" for="diabetes">Diabetes</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="renal_cronico"
+                                            value="Renal Crônico" />
+                                        <label class="form-check-label" for="renal_cronico">Renal Crônico</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="aids" value="AIDS" />
+                                        <label class="form-check-label" for="aids">AIDS</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="asma_cronica"
+                                            value="Asma Crônica" />
+                                        <label class="form-check-label" for="asma_cronica">Asma Crônica</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="dpoc" value="DPOC" />
+                                        <label class="form-check-label" for="dpoc">DPOC</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="bronquite"
+                                            value=" Bronquite" />
+                                        <label class="form-check-label" for="bronquite">Bronquite</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Décima Primeira Linha: Outras Patologias -->
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="outras_patologias">Outras Patologias</label>
+                                    <textarea class="form-control form-control-sm" id="outras_patologias" rows="2"
+                                        placeholder="Digite outras patologias, se houver"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Décima Segunda Linha: Tabagista, Etilista e Outras Substâncias -->
+                        <div class="row mt-3">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Tabagista:</label>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="tabagista" id="tabagista_sim"
+                                            value="sim" />
+                                        <label class="form-check-label" for="tabagista_sim">Sim</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="tabagista" id="tabagista_nao"
+                                            value="nao" />
+                                        <label class="form-check-label" for="tabagista_nao">Não</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Etilista:</label>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="etilista" id="etilista_sim"
+                                            value="sim" />
+                                        <label class="form-check-label" for="etilista_sim">Sim</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="etilista" id="etilista_nao"
+                                            value="nao" />
+                                        <label class="form-check-label" for="etilista_nao">Não</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Outras Substâncias:</label>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="outras_substancias"
+                                            id="outras_substancias_sim" value="sim" />
+                                        <label class="form-check-label" for="outras_substancias_sim">Sim</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="outras_substancias"
+                                            id="outras_substancias_nao" value="não" />
+                                        <label class="form-check-label" for="outras_substancias_nao">Não</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Décima Terceira Linha: N° Cigarros/dia, Consumo/semana e Descreva -->
+                        <div class="row mt-3">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>N° Cigarros/dia</label>
+                                    <input type="text" class="form-control form-control-sm" id="num_cigarros_dia"
+                                        style="width: 70%" placeholder="Digite o número de cigarros por dia" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Consumo/semana</label>
+                                    <input type="text" class="form-control form-control-sm" id="consumo_semana"
+                                        style="width: 70%" placeholder="Digite o consumo por semana" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Descreva</label>
+                                    <input type="text" class="form-control form-control-sm" id="descreva"
+                                        placeholder="Descreva..." />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Décima Quarta Linha: Realiza Atividade Física e Alimentação -->
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Realiza Atividade Física:</label>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="atividade_fisica"
+                                            id="atividade_fisica_sim" value="sim" />
+                                        <label class="form-check-label" for="atividade_fisica_sim">Sim</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="atividade_fisica"
+                                            id="atividade_fisica_nao" value="não" />
+                                        <label class="form-check-label" for="atividade_fisica_nao">Não</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Alimentação:</label>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="alimentacao"
+                                            id="alimentacao_normal" value="normal" />
+                                        <label class="form-check-label" for="alimentacao_normal">Alimenta-se
+                                            Normalmente</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="alimentacao"
+                                            id="alimentacao_inadequada" value="inadequada" />
+                                        <label class="form-check-label" for="alimentacao_inadequada">Padrão
+                                            Inadequado</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Décima Quinta Linha: Ingesta Líquida -->
+                        <div class="row mt-3">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label>Ingesta Líquida:</label>
+
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="ingesta_liquida"
+                                            id="menos_de_1_litro" value="menos de 1 litro" />
+                                        <label class="form-check-label" for="menos_de_1_litro">Menos de 1 litro</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="ingesta_liquida"
+                                            id="mais_de_1_litro" value="mais de 1 litro" />
+                                        <label class="form-check-label" for="mais_de_1_litro">Mais de 1 litro</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="ingesta_liquida"
+                                            id="mais_de_2_litros" value="mais de 2 litros" />
+                                        <label class="form-check-label" for="mais_de_2_litros">Mais de 2 litros</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Décima Sexta Linha: Padrão Intestinal e Características -->
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Padrão Intestinal:</label>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="padrao_intestinal"
+                                            id="padrao_intestinal_normal" value="normal" />
+                                        <label class="form-check-label" for="padrao_intestinal_normal">Normal</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="padrao_intestinal"
+                                            id="padrao_intestinal_alterado" value="alterado" />
+                                        <label class="form-check-label"
+                                            for="padrao_intestinal_alterado">Alterado</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Características:</label>
+                                    <input type="text" class="form-control form-control-sm"
+                                        id="caracteristicas_intestinais" placeholder="Descreva..." />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Décima Sétima Linha: Padrão Urinário e Características -->
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Padrão Urinário:</label>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="padrao_urinario"
+                                            id="padrao_urinario_normal" value="normal" />
+                                        <label class="form-check-label" for="padrao_urinario_normal">Normal</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="padrao_urinario"
+                                            id="padrao_urinario_alterado" value="alterado" />
+                                        <label class="form-check-label" for="padrao_urinario_alterado">Alterado</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Características:</label>
+                                    <input type="text" class="form-control form-control-sm"
+                                        id="caracteristicas_urinarias" placeholder="Descreva..." />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Décima Oitava Linha: Lista de Medicamentos -->
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="medicamentos">Medicamentos:</label>
+                                    <table class="table table-bordered" id="tabelaMedicamentos">
+                                        <thead>
+                                            <tr>
+                                                <th class="col-4">Nome</th>
+                                                <th class="col-3">Dose</th>
+                                                <th class="col-3">Intervalo</th>
+                                                <th class="col-2">Ações</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="medicamentosTbody">
+                                            <!-- Linhas de medicamentos serão adicionadas aqui -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-8">
+                                <div class="form-group">
+                                    <button type="button" class="btn btn-primary" id="adicionarMedicamento">Adicionar Medicamento</button>
+                                </div>
+                            </div>
+                            <div class="col-sm-2">
+                                <div class="form-group mt-2">
+                                    <!-- Link direto com imagem Medscape -->
+                                    <a href="https://reference.medscape.com/" target="_blank">
+                                        <img src="img/medscape.png" alt="Medscape" style="height:30px; width:auto;">
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-sm-2">
+                                <div class="form-group mt-2">
+                                    <!-- Link direto com imagem Drustore -->
+                                    <a href="https://www.drugs.com/drug_interactions.html" target="_blank">
+                                        <img src="img/drugscom.png" alt="Drustore" style="height:30px; width:auto;">
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="alergias">Alergias:</label>
+                                    <table class="table table-bordered" id="tabelaMedicamentosAlergia">
+                                        <thead>
+                                            <tr>
+                                                <th class="col-10">ALERGIAS</th>
+                                                <th class="col-2">Ações</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="medicamentosTbodyAlergia">
+                                            <!-- Linhas de alergia serão adicionadas aqui -->
+                                        </tbody>
+                                    </table>
+                                    <div class="row align-items-center">
+                                        <div class="col-md-2">
+                                            <button type="button" class="btn btn-danger"
+                                                id="adicionarMedicamentoAlergia">
+                                                Adicionar ALERGIA
+                                            </button>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <div class="custom-control custom-checkbox">
+                                                <input type="checkbox" class="custom-control-input" id="negaAlergias" />
+                                                <label class="custom-control-label" for="negaAlergias">Nega
+                                                    Alergias</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <script>
+                            // Função para adicionar uma nova linha à tabela de medicamentos
+                            function adicionarLinha() {
+                                const tbody = document.getElementById('medicamentosTbody');
+                                const rowCount = tbody.rows.length;
+
+                                const newRow = tbody.insertRow(rowCount);
+                                const cell1 = newRow.insertCell(0);
+                                const cell2 = newRow.insertCell(1);
+                                const cell3 = newRow.insertCell(2);
+                                const cell4 = newRow.insertCell(3);
+
+                                const inputNome = document.createElement('input');
+                                inputNome.type = 'text';
+                                inputNome.className = 'form-control form-control-sm';
+                                inputNome.name = 'medicamento_nome[]';
+                                inputNome.placeholder = 'Nome do Medicamento';
+
+                                cell1.appendChild(inputNome);
+
+                                const inputDose = document.createElement('input');
+                                inputDose.type = 'text';
+                                inputDose.className = 'form-control form-control-sm';
+                                inputDose.name = 'medicamento_dose[]';
+                                inputDose.placeholder = 'Dose';
+
+                                cell2.appendChild(inputDose);
+
+                                const inputIntervalo = document.createElement('input');
+                                inputIntervalo.type = 'text';
+                                inputIntervalo.className = 'form-control form-control-sm';
+                                inputIntervalo.name = 'medicamento_intervalo[]';
+                                inputIntervalo.placeholder = 'Intervalo';
+
+                                cell3.appendChild(inputIntervalo);
+
+                                const removeButton = document.createElement('button');
+                                removeButton.type = 'button';
+                                removeButton.className = 'btn btn-outline-danger btn-sm';
+                                removeButton.textContent = 'Remover';
+                                removeButton.addEventListener('click', function () {
+                                    removerLinha(newRow);
+                                });
+
+                                cell4.appendChild(removeButton);
+                            }
+
+                            // Função para remover uma linha da tabela de medicamentos
+                            function removerLinha(row) {
+                                const tbody = document.getElementById('medicamentosTbody');
+                                tbody.removeChild(row);
+                            }
+
+                            // Adiciona um ouvinte de eventos ao botão "Adicionar Medicamento"
+                            document.getElementById('adicionarMedicamento').addEventListener('click', function () {
+                                adicionarLinha();
+                            });
+
+                            // Função para adicionar uma nova linha à tabela de alergias
+                            function adicionarLinhaAlergia() {
+                                const tbody = document.getElementById('medicamentosTbodyAlergia');
+                                const newRow = document.createElement('tr');
+
+                                newRow.innerHTML = `
+                                    <td><input type="text" class="form-control form-control-sm medicamento_nome_alergia" placeholder="Medicamentos, Iodo, Espaladrapo, Luva de Procedimento"></td>
+                                    <td><button type="button" class="btn btn-outline-danger btn-sm" onclick="removerLinhaAlergia(this)">Remover</button></td>
+                                `;
+
+                                tbody.appendChild(newRow);
+                            }
+
+                            // Função para remover uma linha da tabela de alergias
+                            function removerLinhaAlergia(button) {
+                                const row = button.closest('tr');
+                                row.remove();
+                            }
+
+                            // Adiciona um ouvinte de eventos ao checkbox "Nega Alergias"
+                            document.getElementById('negaAlergias').addEventListener('change', function () {
+                                const isChecked = this.checked;
+                                document.getElementById('adicionarMedicamentoAlergia').disabled = isChecked;
+                                const inputs = document.querySelectorAll('.medicamento_nome_alergia');
+                                inputs.forEach((input) => (input.disabled = isChecked));
+                            });
+
+                            // Adiciona um ouvinte de eventos ao botão "Adicionar ALERGIA"
+                            document.getElementById('adicionarMedicamentoAlergia').addEventListener('click', function () {
+                                adicionarLinhaAlergia();
+                            });
+                        </script>
+
+                        <!-- Vigésima Linha: Uso de Medicação Biológica -->
+                        <div class="row mt-3">
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label>Já fez uso de medicação biológica?</label>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="uso_medicacao_biologica"
+                                            id="uso_biologica_sim" value="sim" />
+                                        <label class="form-check-label" for="uso_biologica_sim">Sim</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="uso_medicacao_biologica"
+                                            id="uso_biologica_nao" value="nao" />
+                                        <label class="form-check-label" for="uso_biologica_nao">Não</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label>Quais:</label>
+                                    <input type="text" class="form-control form-control-sm" id="medicacao_biologica"
+                                        name="medicacao_biologica" placeholder="Digite as medicações biológicas" />
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Vigésima Primeira Linha: Motivo da Mudança de Medicação -->
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label>Motivo da mudança de medicação:</label>
+                                    <input type="text" class="form-control form-control-sm"
+                                        id="motivo_mudanca_medicacao" name="motivo_mudanca_medicacao"
+                                        placeholder="Digite o motivo da mudança de medicação" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Aba "Fisiológico" -->
+            <div class="tab-pane fade" id="fisiologico" role="tabpanel" aria-labelledby="fisiologico-tab">
+                <div id="fisiologico-form">
+                    <div class="container">
+                        <div class="row mt-3">
+                            <!-- Grupo de perguntas sobre sinais vitais -->
+                            <div class="col-sm">
+                                <div class="form-group">
+                                    <label class="form-label-sm">Pressão Arterial</label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" class="form-control" id="pressaoSistolica"
+                                            name="pressaoSistolica" placeholder="Sistólica" />
+                                        <span class="input-group-text">x</span>
+                                        <input type="text" class="form-control" id="pressaoDiastolica"
+                                            name="pressaoDiastolica" placeholder="Diastólica" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm">
+                                <div class="form-group">
+                                    <label class="form-label-sm">Pulso (bpm)</label>
+                                    <input type="text" class="form-control form-control-sm" id="pulso" name="pulso"
+                                        placeholder="Ex: 75" />
+                                </div>
+                            </div>
+                            <div class="col-sm">
+                                <div class="form-group">
+                                    <label class="form-label-sm">Temperatura (°C)</label>
+                                    <input type="text" class="form-control form-control-sm" id="temperatura"
+                                        name="temperatura" placeholder="Ex: 36.5" />
+                                </div>
+                            </div>
+                            <div class="col-sm">
+                                <div class="form-group">
+                                    <label class="form-label-sm">Saturação (%)</label>
+                                    <input type="text" class="form-control form-control-sm" id="saturacao"
+                                        name="saturacao" placeholder="Ex: 98" />
+                                </div>
+                            </div>
+                            <div class="col-sm">
+                                <div class="form-group">
+                                    <label class="form-label-sm">Peso (Kg)</label>
+                                    <input type="text" class="form-control form-control-sm" id="peso" name="peso"
+                                        placeholder="Ex: 90.0" />
+                                </div>
+                            </div>
+                            <div class="col-sm">
+                                <div class="form-group">
+                                    <label class="form-label-sm">Glicose (mg/dL)</label>
+                                    <input type="text" class="form-control form-control-sm" id="glicose" name="glicose"
+                                        placeholder="Ex: 90" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <!-- Campo para pré-medicação -->
+                            <div class="col-md-2">
+                                <label class="form-label">Possui pré-medicação:</label>
+                                <div class="d-flex align-items-center">
+                                    <div class="form-check me-2">
+                                        <input class="form-check-input" type="radio" name="preMedicacao"
+                                            id="preMedicacaoSim" value="Sim" />
+                                        <label class="form-check-label" for="preMedicacaoSim">Sim</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="preMedicacao"
+                                            id="preMedicacaoNao" value="Não" />
+                                        <label class="form-check-label" for="preMedicacaoNao">Não</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Campos para medicamento, dose e tempo -->
+                            <div class="col-sm">
+                                <div class="form-group">
+                                    <label class="form-label-sm">Medicamento</label>
+                                    <input type="text" class="form-control form-control-sm" id="medicamentoPre"
+                                        name="medicamentoPre" placeholder="Nome do medicamento" disabled />
+                                </div>
+                            </div>
+                            <div class="col-sm">
+                                <div class="form-group">
+                                    <label class="form-label-sm">Dose</label>
+                                    <input type="text" class="form-control form-control-sm" id="dosePre" name="dosePre"
+                                        placeholder="Dose" disabled />
+                                </div>
+                            </div>
+                            <div class="col-sm">
+                                <div class="form-group">
+                                    <label class="form-label-sm">Tempo</label>
+                                    <input type="text" class="form-control form-control-sm" id="tempoPre"
+                                        name="tempoPre" placeholder="Tempo" disabled />
+                                </div>
+                            </div>
+                        </div>
+                        <script>
+                            document.getElementById('preMedicacaoSim').addEventListener('change', function () {
+                                document.getElementById('medicamentoPre').disabled = false;
+                                document.getElementById('dosePre').disabled = false;
+                                document.getElementById('tempoPre').disabled = false;
+                            });
+
+                            document.getElementById('preMedicacaoNao').addEventListener('change', function () {
+                                document.getElementById('medicamentoPre').disabled = true;
+                                document.getElementById('dosePre').disabled = true;
+                                document.getElementById('tempoPre').disabled = true;
+                            });
+                        </script>
+                        <div class="row mt-3">
+                            <!-- Seletor de medicação -->
+                            <div class="col-6 col-md-2">
+                                <div class="form-group">
+                                    <label for="medication-select" class="form-label">Escolha a medicação:</label>
+                                    <select id="medication-select" class="form-select form-select-sm"
+                                        aria-label="Selecione a medicação">
+                                        <option selected>Selecione uma opção</option>
+                                        <option value="alfa1Antitripsina">Adalimumabe</option>
+                                        <option value="infliximabe">Infliximabe</option>
+                                        <option value="IGH">IGH</option>
+                                        <option value="Xolair">Xolair</option>
+                                        <option value="Nucala">Nucala</option>
+                                        <option value="vedolizumabe">Vedolizumabe</option>
+                                        <option value="noripurum">Noripurum</option>
+                                        <option value="Alfa 1 Antitripsina">Alfa 1 Antitripsina</option>
+                                        <option value="Stellara">Stellara</option>
+                                        <option value="Dupilumabe">Dupilumabe</option>
+                                        <option value="Adalimumabe">Adalimumabe</option>
+                                        <option value="Citoneurim">Citoneurim</option>
+                                        <option value="Eculizumabe">Eculizumabe</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <!-- Campos para mostrar os resultados -->
+                            <div class="col-6 col-md-2">
+                                <div class="form-group">
+                                    <label for="dose-total" class="form-label">Dose Total (mg):</label>
+                                    <input type="text" class="form-control form-control-sm" id="dose-total" />
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-2">
+                                <div class="form-group">
+                                    <label for="volume-total" class="form-label">Volume Total (ml):</label>
+                                    <input type="text" class="form-control form-control-sm" id="volume-total" />
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-2">
+                                <div class="form-group">
+                                    <label for="tempo-total" class="form-label">Tempo de Infusão</label>
+                                    <input type="text" class="form-control form-control-sm" id="tempo-total" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Aba "Diagnósticos/Metas/Intervenções" -->
+            <div class="tab-pane fade" id="diagnosticos" role="tabpanel" aria-labelledby="diagnosticos-tab">
+                <div id="diagnosticos-form">
+                    <div class="container mt-2">
+                        <div class="row mt-5">
+                            <h5>Diagnósticos / Metas / Intervenções</h5>
+                            <div class="accordion mt-3" id="accordionExample">
+                                <!-- Os itens do acordeão serão inseridos aqui pelo JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    // Insira seus dados JSON aqui
+                    const dados = [
+                        {
+                            id: 1,
+                            diagnostico: 'Administrar medicação endovenosa prescrita',
+                            metas: 'Administração de medicação endovenosa prescrita, iniciada',
+                            intervencoes: [
+                                'Confirmar prescrição médica',
+                                'Assegurar que é a medicação correta',
+                                'Confirmar dose correta',
+                                'Confirmar a identidade do paciente',
+                                'Confirmar tempo de infusão correto',
+                                'Assegurar técnica asséptica',
+                                'Rotular adequadamente a medicação preparada',
+                                'Administrar Medicação Intravenosa (ou Endovenosa)',
+                                'Realizar punção venosa periférica',
+                                'Documentar o processo de preparação da medicação',
+                            ],
+                        },
+                        {
+                            id: 2,
+                            diagnostico: 'Administrar medicação subcutânea prescrita',
+                            metas: 'Administração de medicação subcutânea realizada',
+                            intervencoes: [
+                                'Monitorar sinais vitais',
+                                'Assegurar técnica asséptica',
+                                'Monitorar os sinais e sintomas de reação alérgica sistémica e anafilaxia',
+                                'Orientar paciente quanto aos cuidados com local da administração subcutânea',
+                                'Aplicar medicação em local prescrito',
+                                'Documentar o processo',
+                            ],
+                        },
+                        {
+                            id: 3,
+                            diagnostico: 'Efeito secundário da medicação, se presente',
+                            metas: 'Efeito secundário da medicação, ausente',
+                            intervencoes: [
+                                'Interromper medicação endovenosa',
+                                'Inserir dispositivo de acesso vascular, se necessário',
+                                'Verificar permeabilidade de acesso venoso',
+                                'Comunicar ao enfermeiro',
+                                'Comunicar a equipe médica',
+                                'Monitorar os sinais e sintomas de reação alérgica sistémica e anafilaxia',
+                                'Administrar medicação endovenosa',
+                            ],
+                        },
+                        {
+                            id: 4,
+                            diagnostico: 'Risco de Efeito Colateral da Medicação',
+                            metas: 'Risco de efeito colateral da medicação, diminuído/ Efeito colateral da medicação, ausente',
+                            intervencoes: [
+                                'Administrar tratamento profilático',
+                                'Observar reações de hipersensibilidade',
+                                'Escutar queixas apresentadas pelo paciente',
+                            ],
+                        },
+                        {
+                            id: 5,
+                            diagnostico: 'Risco de extravasamento de medicação',
+                            metas: 'Risco de extravasamento de medicação, diminuido',
+                            intervencoes: ['Acompanhar pessoa em seus deslocamentos', 'Manter vigilância contínua'],
+                        },
+                        {
+                            id: 6,
+                            diagnostico: 'Risco de Alergia',
+                            metas: 'Alergia, ausente',
+                            intervencoes: [
+                                'Verificar quais são os alergênicos do paciente',
+                                'Certifica-se do não uso alergênicos do paciente durante a infusão',
+                            ],
+                        },
+                        {
+                            id: 7,
+                            diagnostico: 'Deambulação alterada',
+                            metas: 'Deambulação melhorada',
+                            intervencoes: [
+                                'Acompanhar e ajudar durante deambulação',
+                                'Monitorar marcha, equilíbrio e fadiga',
+                                'Manter vigilância continua',
+                                'Encaminhar a poltrona em cadeira de rodas',
+                            ],
+                        },
+                        {
+                            id: 8,
+                            diagnostico: 'Atitude em Relação ao Manejo (Controle) da Medicação, Conflituosa',
+                            metas: 'Atitude em Relação ao Manejo (Controle) da Medicação',
+                            intervencoes: [
+                                'Orientar o paciente quanto ao manejo correto da medicação',
+                                'Orientar quanto a importância de manter refrigeração adequada da medicação',
+                                'Orientar quanto a importância de transporte adequado da medicação',
+                            ],
+                        },
+                        {
+                            id: 9,
+                            diagnostico: 'Conhecimento, inadequado sobre a Medicação',
+                            metas: 'Conhecimento, adequado, sobre medicação',
+                            intervencoes: [
+                                'Orientar acerca do uso da medicação',
+                                'Orientar automonitoramento do regime terapêutico',
+                                'Orientar horário e dosagem de medicamentos',
+                                'Orientar a pessoa quanto a medicação prescrita',
+                                'Orientar sobre o regime terapêutico',
+                            ],
+                        },
+
+                        {
+                            id: 10,
+                            diagnostico: 'Ansiedade, presente',
+                            metas: 'Ansiedade diminuída',
+                            intervencoes: [
+                                'Avaliar Fatores causadores',
+                                'Encorajar verbalização de sentimentos, percepções e medos',
+                                'Identificar quando o nível de ansiedade se modifica',
+                                'Tranquilizar a pessoa e/ou famíliar',
+                                'Solicitar permanência do familiar ou acompanhante',
+                            ],
+                        },
+
+                        {
+                            id: 11,
+                            diagnostico: ' Aceitação da Condição de Saúde',
+                            metas: ' Aceitação da Condição de Saúde, melhorada',
+                            intervencoes: [
+                                'Auxiliar no Autocuidado',
+                                'Avaliar Adesão ao Regime Terapêutico',
+                                'Avaliar Resposta ao Tratamento',
+                                'Avaliar Satisfação com Atenção à Saúde',
+                                'Colaborar com a Família',
+                            ],
+                        },
+                        {
+                            id: 12,
+                            diagnostico: 'Conhecimento, inadequado sobre a Medicação',
+                            metas: 'Conhecimento, adequado, sobre medicação',
+                            intervencoes: [
+                                'Orientar acerca do uso da medicação',
+                                'Orientar automonitoramento do regime terapêutico',
+                                'Orientar horário e dosagem de medicamentos',
+                                'Orientar a pessoa quanto a medicação prescrita',
+                                'Orientar sobre o regime terapêutico',
+                            ],
+                        },
+                    ];
+
+
+                    // Função para adicionar os itens do acordeão
+                    function adicionarItensAcordeao(dados) {
+                        const acordeao = document.getElementById('accordionExample');
+
+                        dados.forEach((item) => {
+                            const itemAcordeao = document.createElement('div');
+                            itemAcordeao.className = 'accordion-item';
+                            itemAcordeao.innerHTML = `
+                      <h2 class="accordion-header" id="heading${item.id}">
+                          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${item.id}" aria-expanded="false" aria-controls="collapse${item.id}">
+                              ${item.diagnostico}
+                          </button>
+                      </h2>
+                      <div id="collapse${item.id}" class="accordion-collapse collapse" aria-labelledby="heading${item.id}" data-bs-parent="#accordionExample">
+                          <div class="accordion-body">
+                              <strong class="clickable-label" data-target="#checkboxes${item.id}">Meta: </strong>
+                              <span class="clickable-label" data-target="#checkboxes${item.id}"><br>${item.metas}</span><br>
+                              <strong>Intervenções:</strong><br>
+                              <div id="checkboxes${item.id}">
+                                  ${item.intervencoes.map((intervencao) => `<div><input type="checkbox"> ${intervencao}</div>`).join('')}
+                              </div>
+                          </div>
+                      </div>
+                    `;
+                            acordeao.appendChild(itemAcordeao);
+                        });
+
+                        // Adicionando o evento de clique nas labels Meta e sua descrição para selecionar/desselecionar todos os checkboxes
+                        document.querySelectorAll('.clickable-label').forEach((label) => {
+                            label.addEventListener('click', function () {
+                                const target = document.querySelector(this.getAttribute('data-target'));
+                                const checkboxes = target.querySelectorAll('input[type="checkbox"]');
+                                const allChecked = Array.from(checkboxes).every((checkbox) => checkbox.checked);
+                                checkboxes.forEach((checkbox) => (checkbox.checked = !allChecked));
+                            });
+                        });
+                    }
+
+                    adicionarItensAcordeao(dados);
+
+                    function coletarDadosDiagnosticos() {
+                        var dadosColetados = '';
+
+                        document.querySelectorAll('.accordion-item').forEach(function (item) {
+                            // Coleta o diagnóstico e remove texto entre colchetes.
+                            var diagnostico = item
+                                .querySelector('.accordion-button')
+                                .innerText.trim()
+                                .replace(/\[.*?\]/g, '');
+
+                            // Coleta a meta.
+                            var metaElement = item.querySelector('.accordion-body span');
+                            var meta = metaElement ? metaElement.innerText.trim() : '';
+
+                            // Coleta as intervenções selecionadas.
+                            var intervencoesSelecionadas = item.querySelectorAll(
+                                '.accordion-body input[type="checkbox"]:checked'
+                            );
+
+                            if (intervencoesSelecionadas.length > 0) {
+                                var intervencaoTexto = '';
+
+                                intervencoesSelecionadas.forEach(function (checkbox) {
+                                    var textoIntervencao = checkbox.nextSibling.textContent.trim();
+                                    // Verifica se o texto da intervenção é diferente do texto da meta antes de incluir.
+                                    if (textoIntervencao !== meta) {
+                                        intervencaoTexto += textoIntervencao + '\n';
+                                    }
+                                });
+
+                                // Formata os dados coletados para este diagnóstico.
+                                dadosColetados +=
+                                    'Diagnóstico: ' +
+                                    diagnostico +
+                                    '\nMeta: ' +
+                                    meta +
+                                    '\nIntervenções:\n' +
+                                    intervencaoTexto +
+                                    '\n';
+                            }
+                        });
+
+                        return dadosColetados;
+                    }
+                });
+            </script>
+
+        </div>
+    </section>
+
+    <script>
+        function coletarDadosFuncaoPapel() {
+            var nomePaciente = document.getElementById('nomePaciente').value.toUpperCase();
+            var prontuarioPaciente = document.getElementById('prontuarioPaciente').value.toUpperCase();
+            var dataNascimentoPaciente = document.getElementById('data_nascimento').value;
+            var celularPaciente = document.getElementById('celular').value;
+            var bairroPaciente = document.getElementById('bairro').value;
+            var cidadePaciente = document.getElementById('cidade').value;
+
+            var { dataFormatadaParaExibicao } = obterComponentesDataAtual(); // Obtém a data no formato de exibição
+
+            var dados =
+                nomePaciente +
+                '   Prontuário: ' +
+                prontuarioPaciente +
+                '\n\n' +
+                '---------------------------------------------------------------------\n' +
+                'MODO FUNÇÃO DO PAPEL\n' +
+                'Data: ' +
+                dataFormatadaParaExibicao +
+                '\n';
+
+            if (dataNascimentoPaciente) {
+                dados += 'Data de Nascimento: ' + dataNascimentoPaciente + ' • ';
+            }
+            if (celularPaciente) {
+                dados += 'Celular: ' + celularPaciente + '\n';
+            }
+            if (bairroPaciente || cidadePaciente) {
+                dados += 'Bairro: ' + bairroPaciente + ' • Cidade: ' + cidadePaciente + '\n';
+            }
+
+            dados += '---------------------------------------------------------------------\n';
+
+            return dados;
+        }
+
+        function coletarDadosInterdependencia() {
+            var interdependenciaStatus = document.querySelector('input[name="medicacaoStatus"]:checked');
+            var transporteAdequado = document.querySelector('input[name="condicaoTransporte"]:checked');
+            var armazenamentoAdequado = document.querySelector('input[name="condicaoArmazenamento"]:checked');
+            var quedaLuz = document.querySelector('input[name="quedaLuz"]:checked');
+            var usoMedicacaoCentro = document.querySelector('input[name="usoMedicacaoCentro"]:checked');
+            var quantidadeFrascos = document.getElementById('quantidadeFrascosemprestados').value;
+            var comentarios = document.getElementById('comentarios').value;
+
+            var dadosInterdependencia = '';
+
+            if (interdependenciaStatus) dadosInterdependencia += `${interdependenciaStatus.value}\n`;
+            if (transporteAdequado) dadosInterdependencia += `Transporte da medicação: ${transporteAdequado.value}\n`;
+            if (armazenamentoAdequado) dadosInterdependencia += `Armazenamento da medicação: ${armazenamentoAdequado.value}\n`;
+            if (quedaLuz) dadosInterdependencia += `Houve queda de luz por algum periodo? ${quedaLuz.value}\n`;
+            if (usoMedicacaoCentro) dadosInterdependencia += `Paciente irá usar a medicação do Centre de Infusão: ${usoMedicacaoCentro.value}\n`;
+            if (quantidadeFrascos) dadosInterdependencia += `Quantidade de frascos: ${quantidadeFrascos}\n`;
+            if (comentarios) dadosInterdependencia += `Comentários: ${comentarios}\n`;
+
+            return dadosInterdependencia ? `MODO INTERDEPENDÊNCIA\n${dadosInterdependencia}---------------------------------------------------------------------\n` : '';
+        }
+
+        function coletarDadosAutoconceito() {
+            var diagnostico = document.getElementById('diagnostico').value;
+            var dataDiagnostico = document.getElementById('data_diagnostico').value;
+            var historiaAtual = document.getElementById('historia_atual').value;
+            var sintomasAtuais = document.getElementById('sintomas_atuais').value;
+
+            // Coleta dos valores das comorbidades selecionadas
+            var comorbidades = [];
+            var comorbidadesIds = [
+                'hipertensao',
+                'diabetes',
+                'renal_cronico',
+                'aids',
+                'asma_cronica',
+                'dpoc',
+                'bronquite',
+                'negacomorbidades',
+            ];
+            comorbidadesIds.forEach((id) => {
+                if (document.getElementById(id).checked) {
+                    comorbidades.push(document.getElementById(id).value);
+                }
+            });
+
+            var outrasPatologias = document.getElementById('outras_patologias').value;
+            var tabagista = document.querySelector('input[name="tabagista"]:checked')
+                ? document.querySelector('input[name="tabagista"]:checked').value
+                : '';
+            var etilista = document.querySelector('input[name="etilista"]:checked')
+                ? document.querySelector('input[name="etilista"]:checked').value
+                : '';
+            var outrasSubstancias = document.querySelector('input[name="outras_substancias"]:checked')
+                ? document.querySelector('input[name="outras_substancias"]:checked').value
+                : '';
+            var numCigarrosDia = document.getElementById('num_cigarros_dia').value;
+            var consumoSemana = document.getElementById('consumo_semana').value;
+            var descreva = document.getElementById('descreva').value;
+            var atividadeFisica = document.querySelector('input[name="atividade_fisica"]:checked')
+                ? document.querySelector('input[name="atividade_fisica"]:checked').value
+                : '';
+            var alimentacao = document.querySelector('input[name="alimentacao"]:checked')
+                ? document.querySelector('input[name="alimentacao"]:checked').value
+                : '';
+            var ingestaLiquida = document.querySelector('input[name="ingesta_liquida"]:checked')
+                ? document.querySelector('input[name="ingesta_liquida"]:checked').value
+                : '';
+            var padraoIntestinal = document.querySelector('input[name="padrao_intestinal"]:checked')
+                ? document.querySelector('input[name="padrao_intestinal"]:checked').value
+                : '';
+            var caracteristicasIntestinais = document.getElementById('caracteristicas_intestinais').value;
+            var padraoUrinario = document.querySelector('input[name="padrao_urinario"]:checked')
+                ? document.querySelector('input[name="padrao_urinario"]:checked').value
+                : '';
+            var caracteristicasUrinarias = document.getElementById('caracteristicas_urinarias').value;
+            var usoMedicacaoBiologica = document.querySelector('input[name="uso_medicacao_biologica"]:checked')
+                ? document.querySelector('input[name="uso_medicacao_biologica"]:checked').value
+                : '';
+            var medicacaoBiologica = document.getElementById('medicacao_biologica').value;
+            var motivoMudancaMedicacao = document.getElementById('motivo_mudanca_medicacao').value;
+
+            var resultadoMedicamentos = '';
+            var linhasTabelaMedicamentos = document.querySelectorAll('#medicamentosTbody tr');
+            linhasTabelaMedicamentos.forEach(function (linha, index) {
+                var nomeMedicamento = linha.querySelector('[name="medicamento_nome[]"]').value.toUpperCase();
+                var dose = linha.querySelector('[name="medicamento_dose[]"]').value;
+                var intervalo = linha.querySelector('[name="medicamento_intervalo[]"]').value;
+
+                resultadoMedicamentos += `${nomeMedicamento}, ${dose}, ${intervalo} / `;
+            });
+
+            // Pegue as informações dos medicamentos de alergia
+            const medicamentosAlergia = [];
+            const medicamentoNomeAlergia = document.getElementsByClassName('medicamento_nome_alergia');
+            const negaAlergias = document.getElementById('negaAlergias').checked;
+
+            for (let i = 0; i < medicamentoNomeAlergia.length; i++) {
+                const nomeAlergia = medicamentoNomeAlergia[i].value.trim();
+
+                if (nomeAlergia !== '') {
+                    medicamentosAlergia.push(`${nomeAlergia.toUpperCase()}`);
+                }
+            }
+
+            // Montagem da string de dados coletados
+            var dadosAutoconceito = '';
+
+            if (diagnostico) {
+                dadosAutoconceito += `Diagnóstico: ${diagnostico} - Data do Diagnóstico: ${dataDiagnostico}\n`;
+            }
+            if (historiaAtual) {
+                dadosAutoconceito += `História Atual: ${historiaAtual}\n`;
+            }
+            if (sintomasAtuais) {
+                dadosAutoconceito += `Sintomas Atuais: ${sintomasAtuais}\n`;
+            }
+            if (comorbidades.length > 0) {
+                dadosAutoconceito += `Comorbidades: ${comorbidades.join(', ')}\n`;
+            }
+            if (outrasPatologias) {
+                dadosAutoconceito += `Outras Patologias: ${outrasPatologias}\n`;
+            }
+            if (tabagista || numCigarrosDia) {
+                dadosAutoconceito += `Tabagista: ${tabagista} - N° Cigarros/dia: ${numCigarrosDia}\n`;
+            }
+            if (etilista || consumoSemana) {
+                dadosAutoconceito += `Etilista: ${etilista} - Consumo/semana: ${consumoSemana}\n`;
+            }
+            if (outrasSubstancias || descreva) {
+                dadosAutoconceito += `Outras Substâncias: ${outrasSubstancias} - Descreva: ${descreva}\n`;
+            }
+            if (atividadeFisica || alimentacao || ingestaLiquida) {
+                dadosAutoconceito += `Realiza Atividade Física: ${atividadeFisica} • Alimentação: ${alimentacao} • Ingesta Líquida: ${ingestaLiquida}\n`;
+            }
+            if (padraoIntestinal || caracteristicasIntestinais) {
+                dadosAutoconceito += `Padrão Intestinal: ${padraoIntestinal} - Características: ${caracteristicasIntestinais}\n`;
+            }
+            if (padraoUrinario || caracteristicasUrinarias) {
+                dadosAutoconceito += `Padrão Urinário: ${padraoUrinario} - Características: ${caracteristicasUrinarias}\n`;
+            }
+            if (usoMedicacaoBiologica || medicacaoBiologica) {
+                dadosAutoconceito += `Já fez uso de medicação biológica? ${usoMedicacaoBiologica} - Quais: ${medicacaoBiologica}\n`;
+            }
+            if (motivoMudancaMedicacao) {
+                dadosAutoconceito += `Motivo da mudança de medicação: ${motivoMudancaMedicacao}\n`;
+            }
+            if (resultadoMedicamentos) {
+                dadosAutoconceito += `Medicamentos:\n${resultadoMedicamentos.slice(0, -3)}\n`;
+            }
+
+            if (negaAlergias) {
+                dadosAutoconceito += `ALERGIAS: Nega Alergias\n\n`;
+            } else if (medicamentosAlergia.length > 0) {
+                dadosAutoconceito += `ALERGIAS:\n${medicamentosAlergia.join(', ')}\n\n`;
+            }
+            return dadosAutoconceito ? `MODO AUTOCONCEITO\n${dadosAutoconceito}---------------------------------------------------------------------\n` : '';
+        }
+
+        function coletarDadosFisiologico() {
+            // Sinais Vitais
+            var pressaoSistolica = document.getElementById('pressaoSistolica').value;
+            var pressaoDiastolica = document.getElementById('pressaoDiastolica').value;
+            var pulso = document.getElementById('pulso').value;
+            var temperatura = document.getElementById('temperatura').value;
+            var saturacao = document.getElementById('saturacao').value;
+            var peso = document.getElementById('peso').value;
+            var glicose = document.getElementById('glicose').value;
+
+            // Medicação
+            var medicacaoSelecionada = document.getElementById('medication-select').value;
+            var doseTotal = document.getElementById('dose-total').value;
+            var volumeTotal = document.getElementById('volume-total').value;
+            var tempoTotal = document.getElementById('tempo-total').value;
+
+            // Pré-medicação
+            var preMedicacaoElement = document.querySelector('input[name="preMedicacao"]:checked');
+            var preMedicacao = preMedicacaoElement ? preMedicacaoElement.value : '';
+            var medicamentoPre = document.getElementById('medicamentoPre').value;
+            var dosePre = document.getElementById('dosePre').value;
+            var tempoPre = document.getElementById('tempoPre').value;
+
+            // Concatenação de todos os dados em uma string formatada
+            var dadosFisiologico = '';
+
+            var sinaisVitaisPreenchidos =
+                pressaoSistolica || pressaoDiastolica || pulso || temperatura || saturacao || peso || glicose;
+            if (sinaisVitaisPreenchidos) {
+                dadosFisiologico += `Sinais Vitais\n`;
+                dadosFisiologico += `• Pressão Arterial:${pressaoSistolica} x ${pressaoDiastolica}\n• Pulso: ${pulso}\n• Temperatura: ${temperatura}\n• Saturação: ${saturacao}\n• Peso: ${peso}• Glicose: ${glicose}\n\n`;
+            }
+
+            var medicacaoPreenchida = medicacaoSelecionada && medicacaoSelecionada !== 'Selecione uma opção';
+            if (medicacaoPreenchida || doseTotal || volumeTotal || tempoTotal) {
+                dadosFisiologico += `Medicação\n`;
+                if (medicacaoPreenchida) {
+                    dadosFisiologico += `• Medicação Selecionada: ${medicacaoSelecionada}\n`;
+                }
+                if (doseTotal) {
+                    dadosFisiologico += `• Dose Total: ${doseTotal}\n`;
+                }
+                if (volumeTotal) {
+                    dadosFisiologico += `• Volume Total: ${volumeTotal}\n`;
+                }
+                if (tempoTotal) {
+                    dadosFisiologico += `• Tempo de Infusão: ${tempoTotal}\n`;
+                }
+                dadosFisiologico += `\n\n`;
+            }
+
+            var preMedicacaoPreenchida = preMedicacao === 'Sim' && (medicamentoPre || dosePre || tempoPre);
+            if (preMedicacaoPreenchida) {
+                dadosFisiologico += `Pré-medicação\n`;
+                dadosFisiologico += `• Possui Pré-medicação: ${preMedicacao}\n`;
+                if (medicamentoPre) {
+                    dadosFisiologico += `• Medicamento: ${medicamentoPre}\n`;
+                }
+                if (dosePre) {
+                    dadosFisiologico += `• Dose: ${dosePre}\n`;
+                }
+                if (tempoPre) {
+                    dadosFisiologico += `• Tempo: ${tempoPre}\n`;
+                }
+                dadosFisiologico += `\n`;
+            }
+
+            return dadosFisiologico ? `MODO FISIOLÓGICO\n${dadosFisiologico}---------------------------------------------------------------------\n` : '';
+        }
+
+        function coletarDadosDiagnosticos() {
+            var dadosColetados = '';
+
+            document.querySelectorAll('.accordion-item').forEach(function (item) {
+                // Coleta o diagnóstico e remove texto entre colchetes.
+                var diagnostico = item
+                    .querySelector('.accordion-button')
+                    .innerText.trim()
+                    .replace(/\[.*?\]/g, '');
+
+                // Coleta a meta. Encontre o elemento que contém o texto "Meta:" e acesse o próximo elemento irmão que contém o texto da meta.
+                var metaElement = item.querySelector('.accordion-body span');
+                var meta = metaElement ? metaElement.innerText.trim() : '';
+
+                // Coleta as intervenções selecionadas.
+                var intervencoesSelecionadas = item.querySelectorAll('.accordion-body input[type="checkbox"]:checked');
+
+                if (intervencoesSelecionadas.length > 0) {
+                    var intervencaoTexto = '';
+
+                    intervencoesSelecionadas.forEach(function (checkbox) {
+                        var textoIntervencao = checkbox.nextSibling.textContent.trim();
+                        // Verifica se o texto da intervenção é diferente do texto da meta antes de incluir.
+                        if (textoIntervencao !== meta) {
+                            intervencaoTexto += textoIntervencao + '\n';
+                        }
+                    });
+
+                    // Formata os dados coletados para este diagnóstico.
+                    dadosColetados +=
+                        'Diagnóstico: ' + diagnostico + '\nMeta: ' + meta + '\nIntervenções:\n' + intervencaoTexto + '\n';
+                }
+            });
+
+            return dadosColetados ? `DIAGNOSTICOS / METAS / INTERVENÇÕES\n${dadosColetados}---------------------------------------------------------------------\n` : '';
+        }
+
+        let enfermeiroSelecionado = {};
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.enfermeiro').forEach((button) => {
+                button.addEventListener('click', function () {
+                    document.querySelectorAll('.enfermeiro').forEach((btn) => btn.classList.remove('selecionado'));
+                    this.classList.add('selecionado');
+
+                    enfermeiroSelecionado = {
+                        nome: this.getAttribute('data-nome'),
+                        coren: this.getAttribute('data-coren'),
+                        matricula: this.getAttribute('data-matricula'),
+                    };
+                    console.log(enfermeiroSelecionado); // Para verificar os dados coletados
+                });
+            });
+
+            document.getElementById('btnAssinar').addEventListener('click', function () {
+                $('#confirmationModal').modal('show');
+            });
+
+            document.getElementById('confirmarCopiar').addEventListener('click', function () {
+                compilarECopiarDados('copiar');
+            });
+
+            document.getElementById('confirmarPDF').addEventListener('click', function () {
+                compilarECopiarDados('pdf');
+            });
+
+            document.getElementById('cancelar').addEventListener('click', function () {
+                $('#confirmationModal').modal('hide');
+            });
+        });
+
+        function compilarECopiarDados(acao) {
+            var nomePaciente = document.getElementById('nomePaciente').value.trim();
+            var { dataFormatadaParaExibicao } = obterComponentesDataAtual();
+            var textoFinal =
+                coletarDadosFuncaoPapel() +
+                coletarDadosInterdependencia() +
+                coletarDadosAutoconceito() +
+                coletarDadosFisiologico() +
+                coletarDadosDiagnosticos() +
+                `\nAss.: ${enfermeiroSelecionado.nome || ''}\nCOREN: ${enfermeiroSelecionado.coren || ''}\nMatrícula: ${enfermeiroSelecionado.matricula || ''
+                }`;
+
+            if (acao === 'copiar') {
+                navigator.clipboard
+                    .writeText(textoFinal.trim())
+                    .then(() => alert('Dados copiados para a área de transferência.'))
+                    .catch((err) => console.error('Erro ao copiar os dados: ', err));
+            } else if (acao === 'pdf') {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                doc.setFont('helvetica');
+                doc.setFontSize(8);
+                doc.text(textoFinal.trim(), 10, 10);
+                doc.save(`${nomePaciente} ${dataFormatadaParaExibicao}.pdf`);
+            }
+        }
+
+        function recarregarPagina() {
+            window.location.reload();
+        }
+    </script>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/js/bootstrap.min.js"></script>
+</body>
+
+</html>
